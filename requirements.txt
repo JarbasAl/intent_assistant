@@ -1,0 +1,4 @@
+padatious
+fuzzywuzzy
+adapt-parser
+git+https://github.com/MycroftAI/lingua-franca

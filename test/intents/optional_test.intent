@@ -1,0 +1,3 @@
+what's the weather like [in canada|in france|in portugal]
+how is the weather like [in {location}]
+tell me the weather [ at {location} | in {location} ]
