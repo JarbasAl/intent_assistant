@@ -264,7 +264,7 @@ Intent tests ensure things work as expected and highlight places where humans ca
     360 matched weather_location_tomorrow as expected
     6 matched weather_now as expected
     
-    The following intents are ambiguous
+    The following intents are ambiguous for out of vocabulary words
     [{'weather_now', 'weather_location'},
      {'weather_location_tomorrow', 'weather_tomorrow'}]
 
@@ -298,7 +298,7 @@ for intent in i.generated_wildcards:
                 ambiguous.append({intent, i.fuzzy_best(s).get("intent_name")})
 
 
-print("\nThe following intents are ambiguous")
+print("\nThe following intents are ambiguous for out of vocabulary words")
 print(ambiguous)
 
 ```
