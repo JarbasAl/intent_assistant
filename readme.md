@@ -259,6 +259,15 @@ A good intent is a intent that triggers when expected
 
 Intent tests ensure things work as expected and highlight places where humans can improve things
 
+    108 matched weather_location as expected
+    12 matched weather_tomorrow as expected
+    360 matched weather_location_tomorrow as expected
+    6 matched weather_now as expected
+    
+    The following intents are ambiguous
+    [{'weather_now', 'weather_location'},
+     {'weather_location_tomorrow', 'weather_tomorrow'}]
+
 ```python
 from intent_assistant import IntentAssistant
 
@@ -270,9 +279,11 @@ for intent in i.test_utterances:
         print("testing utterance", s)
         assert intent == i.fuzzy_best(s).get("intent_name")
 
+    print(len(i.test_utterances[intent]["must_match"]), "matched", intent, "as expected")
 
 # filtering ambiguous wildcards
 # these intents should probably be inspected and manual tests written
+ambiguous = []
 for intent in i.generated_wildcards:
     for s in i.generated_wildcards[intent]:
         print("testing wildcard", s)
@@ -282,7 +293,14 @@ for intent in i.generated_wildcards:
         if intent != i.fuzzy_best(s).get("intent_name"):
             print("WARNING: wild card is ambiguous")
             print("intent:", intent, "wilcard:", s)
-            print("matches:", i.fuzzy_best(s) )
+            print("matches:", i.fuzzy_best(s))
+            if {intent, i.fuzzy_best(s).get("intent_name")} not in ambiguous:
+                ambiguous.append({intent, i.fuzzy_best(s).get("intent_name")})
+
+
+print("\nThe following intents are ambiguous")
+print(ambiguous)
+
 ```
 
 #### Test utterances
