@@ -33,7 +33,8 @@ for intent in i.generated_wildcards:
                 ambiguous.append({intent, i.fuzzy_best(s).get("intent_name")})
 
 
-print("\nThe following intents are ambiguous for out of vocabulary words")
+print("\nThe following intents are potentially ambiguous for out of vocabulary words")
+print("please add entries in .entity files for important use cases")
 pprint(ambiguous)
 
 

@@ -2,6 +2,8 @@
 
 write once, use everywhere
 
+Scan your skills folder and diagnose possible problems
+
 
 - [Intent Assistant](#intent-assistant)
   * [Usage](#usage)
@@ -255,7 +257,7 @@ for s in sentences:
 
 ### Intent Tests
 
-A good intent is a intent that triggers when expected
+A good intent is an intent that triggers when expected
 
 Intent tests ensure things work as expected and highlight places where humans can improve things
 
@@ -264,9 +266,12 @@ Intent tests ensure things work as expected and highlight places where humans ca
     360 matched weather_location_tomorrow as expected
     6 matched weather_now as expected
     
-    The following intents are ambiguous for out of vocabulary words
+    The following intent pairs are potentially ambiguous for out of vocabulary words
+    please add entries in .entity files for important use cases
     [{'weather_now', 'weather_location'},
-     {'weather_location_tomorrow', 'weather_tomorrow'}]
+     {'weather_tomorrow', 'weather_location_tomorrow'}]
+
+The intents flagged above as potentially ambiguous should be unified by using location as an optional keyword for better results
 
 ```python
 from intent_assistant import IntentAssistant
@@ -298,7 +303,8 @@ for intent in i.generated_wildcards:
                 ambiguous.append({intent, i.fuzzy_best(s).get("intent_name")})
 
 
-print("\nThe following intents are ambiguous for out of vocabulary words")
+print("\nThe following intent pairs are potentially ambiguous for out of vocabulary words")
+print("please add entries in .entity files for important use cases")
 print(ambiguous)
 
 ```
