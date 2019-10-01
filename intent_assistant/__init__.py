@@ -9,6 +9,7 @@ from lingua_franca.parse import normalize
 from intent_assistant.utils import tokenize, expand_options, expand_keywords
 from intent_assistant.utils.json_helper import merge_dict, invert_dict
 from intent_assistant.utils.auto_regex import AutoRegex
+from intent_assistant.utils.fuzzy import match_one
 
 from os.path import dirname, expanduser, isdir, isfile, join, basename
 from os import listdir
@@ -219,8 +220,8 @@ class IntentAssistant:
 
         rx = [r for r in kw["samples"] if "{" in r]
         opt_rx = [r for r in opt_kw["samples"] if "{" in r]
-        kw["samples"] = [r for r in kw["samples"] if "{" not in r]
-        opt_kw["samples"] = [r for r in opt_kw["samples"] if "{" not in r]
+        kw["samples"] = list(set([r for r in kw["samples"] if "{" not in r]))
+        opt_kw["samples"] = list(set([r for r in opt_kw["samples"] if "{" not in r]))
 
         if len(kw["samples"]):
             keywords.append(kw)
@@ -235,7 +236,7 @@ class IntentAssistant:
                         "name": k,
                         "required": False,
                         "regex": True,
-                        "samples": rx_kw[k]["samples"]
+                        "samples": list(set(rx_kw[k]["samples"]))
                     }
                     if kw not in keywords:
                         keywords.append(kw)
@@ -251,7 +252,7 @@ class IntentAssistant:
                         "name": k,
                         "required": True,
                         "regex": True,
-                        "samples": rx_kw[k]["samples"]
+                        "samples": list(set(rx_kw[k]["samples"]))
                     }
                     if kw not in keywords:
                         keywords.append(kw)
@@ -366,6 +367,59 @@ class IntentAssistant:
             }]
 
         return intents
+
+    @property
+    def expanded_samples(self):
+        intents = {}
+        for intent in self.fuzzy_intents:
+            samples = self.fuzzy_intents[intent][0]["samples"]
+            intents[intent] = [s for s in samples if "*" not in s]
+        return intents
+
+    @property
+    def test_utterances(self):
+        intents = {}
+        for intent in self.fuzzy_intents:
+            samples = self.fuzzy_intents[intent][0]["samples"]
+            intents[intent] = {"must_match": [s for s in samples if "*" not in s],
+                               "wildcards": [s for s in samples if "*" in s],
+                               "auto_generated": []}
+        return intents
+
+    @property
+    def generated_wildcards(self):
+        intents = {}
+        for intent in self.expanded_samples:
+            samples = self.expanded_samples[intent]
+            wild_cards = []
+            for s in samples:
+                for ent in self.entities:
+                    for token in self.entities[ent]:
+                        if token in s:
+                            wild_cards.append(s.replace(token, "*"))
+            intents[intent] = list(set(wild_cards))
+        return intents
+
+    def match_fuzzy(self, sentence):
+        scores = {}
+        for intent in self.expanded_samples:
+            samples = self.expanded_samples[intent]
+            sent, score = match_one(sentence, samples)
+            scores[intent] = {"best_match": sent, "conf": score, "intent_name": intent}
+        return scores
+
+    def fuzzy_best(self, sentence, min_conf=0.4):
+        scores = {}
+        best_s = 0
+        best_intent = None
+        for intent in self.expanded_samples:
+            samples = self.expanded_samples[intent]
+            sent, score = match_one(sentence, samples)
+            scores[intent] = {"best_match": sent, "conf": score, "intent_name": intent}
+            if score > best_s:
+                best_s = score
+                best_intent = intent
+        return scores[best_intent] if best_s > min_conf else {"best_match": None, "conf": 0, "intent_name": None}
 
 
 if __name__ == "__main__":
